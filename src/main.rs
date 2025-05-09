@@ -1,3 +1,4 @@
+use tower_http::cors::{CorsLayer, Any};
 use axum::{
     routing::{get, post, put, delete},
     Router,
@@ -17,6 +18,9 @@ use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use std::fs;
 use std::str::FromStr;
+use uuid::Uuid;
+use bcrypt::{hash, DEFAULT_COST};
+use chrono::Utc;
 
 mod errors;
 mod auth;
@@ -30,7 +34,6 @@ use crate::{
         auth_handler::{register_user_handler, login_handler, logout_handler},
         user_handler::{get_user_profile_handler, update_user_profile_handler},
         receipt_handler::*,
-        // whatsapp_handler::send_whatsapp_receipt_handler, // Not yet used in router
         admin::{
             user_handler::get_all_users_handler as admin_get_all_users,
             receipt_handler::get_all_receipts_admin_handler as admin_get_all_receipts,
@@ -50,6 +53,74 @@ async fn health_check() -> impl IntoResponse {
     (StatusCode::OK, Json(serde_json::json!({ "status": "Healthy" })))
 }
 
+async fn seed_initial_users(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    info!("Seeding initial users...");
+
+    // Admin User
+    let admin_email = "Dipadmin";
+    let admin_exists: Option<i32> = sqlx::query_scalar("SELECT 1 FROM users WHERE email = ?")
+        .bind(admin_email)
+        .fetch_optional(pool)
+        .await?;
+
+    if admin_exists.is_none() {
+        let admin_id = Uuid::new_v4().to_string();
+        let admin_password = "mv1962";
+        let hashed_admin_password = hash(admin_password, DEFAULT_COST)
+            .map_err(|e| sqlx::Error::Configuration(e.into()))?;
+        let now = Utc::now();
+        sqlx::query!(
+            "INSERT INTO users (id, email, name, password_hash, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            admin_id,
+            admin_email,
+            "Admin User", // Default name for admin
+            hashed_admin_password,
+            "admin",
+            now,
+            now
+        )
+        .execute(pool)
+        .await?;
+        info!("Admin user seeded: {}", admin_email);
+    } else {
+        info!("Admin user {} already exists.", admin_email);
+    }
+
+    // Regular User
+    let user_email = "GVora";
+    let user_exists: Option<i32> = sqlx::query_scalar("SELECT 1 FROM users WHERE email = ?")
+        .bind(user_email)
+        .fetch_optional(pool)
+        .await?;
+
+    if user_exists.is_none() {
+        let user_id = Uuid::new_v4().to_string();
+        let user_password = "12345678";
+        let hashed_user_password = hash(user_password, DEFAULT_COST)
+            .map_err(|e| sqlx::Error::Configuration(e.into()))?;
+        let now = Utc::now();
+        sqlx::query!(
+            "INSERT INTO users (id, email, name, password_hash, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            user_id,
+            user_email,
+            "User GVora", // Default name for user
+            hashed_user_password,
+            "user",
+            now,
+            now
+        )
+        .execute(pool)
+        .await?;
+        info!("Regular user seeded: {}", user_email);
+    } else {
+        info!("Regular user {} already exists.", user_email);
+    }
+
+    info!("Initial user seeding completed.");
+    Ok(())
+}
+
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::registry()
@@ -62,7 +133,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:/home/ubuntu/receipt_management_serverless/receipt_app.db".to_string());
     info!("Connecting to database: {}", database_url);
 
-    // Ensure the directory for the SQLite file exists
     let db_path = database_url.strip_prefix("sqlite:").unwrap_or(&database_url);
     if let Some(parent_dir) = std::path::Path::new(db_path).parent() {
         fs::create_dir_all(parent_dir)?;
@@ -82,6 +152,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .run(&pool)
         .await?;
     info!("Database migrations completed.");
+
+    // Seed initial users after migrations
+    seed_initial_users(&pool).await.expect("Failed to seed initial users");
 
     let user_service = Arc::new(UserService::new(pool.clone()));
     let receipt_service = Arc::new(ReceiptService::new(pool.clone()));
@@ -130,6 +203,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all("static").unwrap_or_else(|e| info!("Failed to create static dir or it exists: {}", e));
 
     let app = Router::new()
+    .layer(
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any)
+    )
         .nest("/api", api_router)
         .fallback_service(ServeDir::new("static").not_found_service(get(health_check)))
         .layer(TraceLayer::new_for_http());

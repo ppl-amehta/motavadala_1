@@ -47,7 +47,6 @@ impl UserService {
     }
 
     pub async fn authenticate_user(&self, email: &str, password: &str) -> Result<User, AppError> {
-        // sqlx::query! returns a record with NaiveDateTime, which needs conversion.
         let user_record = sqlx::query!(
             "SELECT id, email, name, password_hash, role, created_at, updated_at FROM users WHERE email = ?",
             email
@@ -55,19 +54,22 @@ impl UserService {
         .fetch_optional(&self.db_pool)
         .await
         .map_err(AppError::SqlxError)?
-        .ok_or(AppError::AuthError("Invalid credentials".to_string()))?;
+        .ok_or(AppError::AuthError("Invalid credentials (user not found)".to_string()))?;
 
-        if verify(password, &user_record.password_hash).unwrap_or(false) { 
+        let valid_password = verify(password, &user_record.password_hash)
+            .map_err(|e| AppError::PasswordHashingError(format!("Password verification failed: {}", e)))?;
+
+        if valid_password {
             Ok(User {
                 id: user_record.id,
                 email: user_record.email,
                 name: user_record.name,
                 role: user_record.role,
-                created_at: DateTime::<Utc>::from_naive_utc_and_offset(user_record.created_at, Utc), // Explicit conversion
-                updated_at: DateTime::<Utc>::from_naive_utc_and_offset(user_record.updated_at, Utc), // Explicit conversion
+                created_at: DateTime::<Utc>::from_naive_utc_and_offset(user_record.created_at, Utc),
+                updated_at: DateTime::<Utc>::from_naive_utc_and_offset(user_record.updated_at, Utc),
             })
         } else {
-            Err(AppError::AuthError("Invalid credentials".to_string()))
+            Err(AppError::AuthError("Invalid credentials (password mismatch)".to_string()))
         }
     }
 
