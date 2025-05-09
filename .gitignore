@@ -1,3 +1,10 @@
+# Rust / Cargo backend specific
+/target
+receipt_app.db
+receipt_app.db-journal
+Cargo.lock
+
+# Node.js / Svelte frontend specific
 /node_modules
 /.svelte-kit
 /build
