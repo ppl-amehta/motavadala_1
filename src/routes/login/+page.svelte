@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  // TODO: Potentially use a Svelte store for managing auth state
+  import { setAuth } from "$lib/stores/authStore";
 
   let email = "";
   let password = "";
@@ -21,15 +21,22 @@
       });
 
       if (response.ok) {
-        const user = await response.json(); // Assuming the backend returns user info
-        // TODO: Store auth token (e.g., in localStorage or a cookie) and user info in a store
-        // For now, just simulate redirect based on a simple role check if available
-        // This part will need to be more robust based on actual backend response and session management
-        console.log("Login successful, user:", user);
-        alert("Login successful! (Backend connected)");
-        // A more robust solution would involve checking the role from the backend response
-        // and then redirecting. For now, we can just redirect to a generic dashboard.
-        goto("/dashboard"); // Placeholder, actual dashboard path might differ
+        const loginResponse = await response.json(); // Expecting { user: User, token: string }
+        // Ensure the response structure matches what setAuth expects
+        if (loginResponse.user && loginResponse.token) {
+          setAuth(loginResponse.user, loginResponse.token);
+          console.log("Login successful, user:", loginResponse.user);
+          // Redirect to dashboard or appropriate page based on role
+          if (loginResponse.user.role === "admin") {
+            goto("/admin/dashboard"); // Example admin dashboard route
+          } else {
+            goto("/dashboard");
+          }
+        } else {
+          // Handle unexpected response structure
+          console.error("Login response did not contain user and token:", loginResponse);
+          errorMessage = "Login failed: Unexpected response from server.";
+        }
       } else {
         const errorResult = await response.json();
         errorMessage = errorResult.message || `Login failed with status: ${response.status}`;
