@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+<<<<<<< HEAD:src/app.css
+=======
+
+
+/* Custom Font Definitions */
+@font-face {
+    font-family: "Play-Regular";
+    src: url("./lib/assets/fonts/Play-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Play-Bold";
+    src: url("./lib/assets/fonts/Play-Bold.ttf");
+}
+
+@font-face {
+    font-family: "TitilliumWeb-Light";
+    src: url("./lib/assets/fonts/TitilliumWeb-Light.ttf");
+}
+
+@font-face {
+    font-family: "TitilliumWeb-SemiBold";
+    src: url("./lib/assets/fonts/TitilliumWeb-SemiBold.ttf");
+}
+
+@font-face {
+    font-family: "LobsterTwo-BoldItalic";
+    src: url("./lib/assets/fonts/LobsterTwo-BoldItalic.ttf");
+}
+
+/* Global Styles from .NET App */
+body {
+    margin: 0px;
+    font-family: "Play-Regular", Calibri, sans-serif; /* Default font */
+}
+
+.PageBackground {
+    background-image: url("./lib/assets/images/Back.jpg");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    background-color: #FF9E5E; /* Fallback color from original CSS */
+}
+
+/* Font utility classes (can be replaced/augmented by Tailwind) */
+.PlayText {
+    font-family: "Play-Regular", Calibri, sans-serif;
+}
+
+.PlayBoldText {
+    font-family: "Play-Bold", Cambria, sans-serif;
+}
+
+.TitilliumWeb-Light {
+    font-family: "TitilliumWeb-Light", 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.TitilliumWeb-SemiBold {
+    font-family: "TitilliumWeb-SemiBold", 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.Lobster-BlodItalic {
+    font-family: "LobsterTwo-BoldItalic", Cambria, serif;
+}
+
+/* Button styles from Button.css */
+.btn {
+  background: #FA935F;
+  background-image: -webkit-linear-gradient(top, #FA935F, #9c3400);
+  background-image: -moz-linear-gradient(top, #FA935F, #9c3400);
+  background-image: -ms-linear-gradient(top, #FA935F, #9c3400);
+  background-image: -o-linear-gradient(top, #FA935F, #9c3400);
+  background-image: linear-gradient(to bottom, #FA935F, #9c3400);
+  -moz-border-radius: 28px;
+  -webkit-border-radius: 28px;
+  border-radius: 28px;
+  color: #ffffff;
+  font-family: "LobsterTwo-BoldItalic", Cambria, serif;
+  font-size: 26px; /* Original was 26px, might need adjustment */
+  padding: 10px 20px;
+  text-decoration: none;
+  border: none; /* Ensuring no default browser border */
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #9c3400;
+  background-image: -webkit-linear-gradient(top, #9c3400, #FA935F);
+  background-image: -moz-linear-gradient(top, #9c3400, #FA935F);
+  background-image: -ms-linear-gradient(top, #9c3400, #FA935F);
+  background-image: -o-linear-gradient(top, #9c3400, #FA935F);
+  background-image: linear-gradient(to bottom, #9c3400, #FA935F);
+  text-decoration: none;
+}
+
+/* Text Size utilities (can be replaced/augmented by Tailwind) */
+.FontSizeHeading{
+    font-size:26pt;
+}
+
+.FontSizeNormalHeavy{
+    font-size:18pt;
+}
+
+.FontSizeNormal{
+    font-size:16pt;
+}
+
+.FontSizeMediumNormal{
+    font-size:14pt;
+}
+
+.FontSizeMedium{
+    font-size:12pt;
+}
+
+.FontSizeSmall{
+    font-size:10pt;
+}
+
+.AlignCenter {
+    text-align: center;
+}
+
+/* Add other necessary global styles from Main.css, Color.css etc. as needed */
+
+>>>>>>> c4ba8c7 (feat: Restructure to monorepo (backend/, frontend/) and add GitHub Codespaces configuration):frontend/src/app.css

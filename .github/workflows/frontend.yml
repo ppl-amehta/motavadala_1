@@ -1,0 +1,46 @@
+name: Svelte Frontend CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_test_frontend:
+    name: Build and Test Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend # Set working directory to the frontend folder
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Specify your Node.js version
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules # Cache node_modules within the frontend directory
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }} # Key based on frontend's package-lock
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Linter (e.g., ESLint)
+        run: npm run lint # Adjust if your lint script is different
+
+      # - name: Run Formatter Check (e.g., Prettier)
+      #   run: npm run format:check # Adjust if your format script is different
+
+      - name: Build Svelte app
+        run: npm run build # Adjust if your build script is different
+
+      # - name: Run tests (e.g., Playwright or Vitest)
+      #   run: npm run test # Adjust if your test script is different
+
