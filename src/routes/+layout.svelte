@@ -1,14 +1,15 @@
 <script lang="ts">
   import "../app.css";
-  // Potentially import a Navbar and Footer component here later
+  import Navbar from "$lib/components/Navbar.svelte";
+  import Footer from "$lib/components/Footer.svelte";
 </script>
 
-<div class="min-h-screen bg-gray-100">
-  <!-- <Navbar /> -->
-  <main class="container mx-auto py-8 px-4">
+<div class="min-h-screen flex flex-col bg-gray-100">
+  <Navbar />
+  <main class="flex-grow container mx-auto py-8 px-4">
     <slot />
   </main>
-  <!-- <Footer /> -->
+  <Footer />
 </div>
 
 <style lang="postcss">
