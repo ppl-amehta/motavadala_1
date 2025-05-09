@@ -1,0 +1,5 @@
+/target
+receipt_app.db
+receipt_app.db-journal
+Cargo.lock
+
