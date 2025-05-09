@@ -13,9 +13,8 @@ use validator::Validate;
 #[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
 pub struct User {
     pub id: String,
-    pub email: String,
+    pub email: String, // This field will store the unique identifier, which can be username or email
     pub name: String,
-    // pub password_hash: String, // Should not be exposed in User struct sent to client
     pub role: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -23,17 +22,21 @@ pub struct User {
 
 #[derive(Deserialize, Debug, Validate)]
 pub struct NewUser {
-    #[validate(email)]
-    pub email: String,
+    // If allowing username for login, registration should also reflect this.
+    // For now, keeping email validation for new user registration to ensure a valid email is captured if needed for other purposes.
+    // Or, we can change this to username and add a separate optional email field.
+    // For simplicity, let's assume 'email' field here is the primary identifier (username or email)
+    #[validate(length(min = 1))] // Changed from email validation to simple length
+    pub email: String, // This will be the username or email
     #[validate(length(min = 8))]
     pub password: String,
     pub name: String,
     pub role: String,
 }
 
-#[derive(Deserialize, Debug, Validate)] // Added Validate here
+#[derive(Deserialize, Debug, Validate)]
 pub struct UpdateUserProfilePayload {
-    #[validate(email)]
+    #[validate(length(min = 1))] // Changed from email validation
     pub email: Option<String>,
     pub name: Option<String>,
 }
@@ -53,7 +56,7 @@ pub struct Receipt {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Debug, Validate)] // Added Validate
+#[derive(Deserialize, Debug, Validate)]
 pub struct NewReceipt {
     #[validate(length(min = 1))]
     pub title: String,
@@ -65,7 +68,7 @@ pub struct NewReceipt {
     pub file_url: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Validate)] // Added Validate
+#[derive(Deserialize, Debug, Validate)]
 pub struct UpdateReceiptPayload {
     #[validate(length(min = 1))]
     pub title: Option<String>,
@@ -79,8 +82,9 @@ pub struct UpdateReceiptPayload {
 
 #[derive(Deserialize, Debug, Validate)]
 pub struct LoginRequest {
-    #[validate(email)]
-    pub email: String,
+    // Removed email validation, field name changed for clarity
+    #[validate(length(min = 1))]
+    pub username_or_email: String,
     pub password: String,
 }
 
