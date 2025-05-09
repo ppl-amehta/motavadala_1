@@ -1,31 +1,44 @@
 <script lang="ts">
-  let email = 
-""
-;
-  let password = 
-""
-;
-  let errorMessage = 
-""
-;
+  import { goto } from "$app/navigation";
+  // TODO: Potentially use a Svelte store for managing auth state
+
+  let email = "";
+  let password = "";
+  let errorMessage = "";
+  let isLoading = false;
 
   async function handleSubmit() {
-    errorMessage = 
-""
-;
-    // TODO: Implement actual login logic, call backend API
-    console.log("Login attempt with:", email, password);
-    if (email === "admin@example.com" && password === "password") {
-      // Simulate successful login
-      alert("Login successful! (Simulated)");
-      // TODO: Redirect to dashboard or appropriate page
-      // import { goto } from 
-"$app/navigation"
-;
-      // goto("/dashboard");
-    } else {
-      errorMessage = "Invalid email or password. (Simulated)";
+    errorMessage = "";
+    isLoading = true;
+
+    try {
+      const response = await fetch("http://localhost:3002/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const user = await response.json(); // Assuming the backend returns user info
+        // TODO: Store auth token (e.g., in localStorage or a cookie) and user info in a store
+        // For now, just simulate redirect based on a simple role check if available
+        // This part will need to be more robust based on actual backend response and session management
+        console.log("Login successful, user:", user);
+        alert("Login successful! (Backend connected)");
+        // A more robust solution would involve checking the role from the backend response
+        // and then redirecting. For now, we can just redirect to a generic dashboard.
+        goto("/dashboard"); // Placeholder, actual dashboard path might differ
+      } else {
+        const errorResult = await response.json();
+        errorMessage = errorResult.message || `Login failed with status: ${response.status}`;
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      errorMessage = "An unexpected error occurred. Please try again.";
     }
+    isLoading = false;
   }
 </script>
 
@@ -36,12 +49,12 @@
       <div class="mt-4">
         <div>
           <label class="block" for="email">Email</label>
-          <input type="email" placeholder="Email" id="email" bind:value={email}
+          <input type="email" placeholder="Email" id="email" bind:value={email} required
                  class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600">
         </div>
         <div class="mt-4">
           <label class="block" for="password">Password</label>
-          <input type="password" placeholder="Password" id="password" bind:value={password}
+          <input type="password" placeholder="Password" id="password" bind:value={password} required
                  class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600">
         </div>
         {#if errorMessage}
@@ -50,11 +63,13 @@
           </div>
         {/if}
         <div class="flex items-baseline justify-between">
-          <button type="submit"
-                  class="px-6 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-900 w-full">Login</button>
+          <button type="submit" disabled={isLoading}
+                  class="px-6 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-900 w-full disabled:opacity-50">
+            {#if isLoading}Logging in...{:else}Login{/if}
+          </button>
         </div>
         <div class="mt-4 text-grey-600 text-center">
-          Don't have an account? <a href="/register" class="text-blue-600 hover:underline">Register here</a>
+          Don\'t have an account? <a href="/register" class="text-blue-600 hover:underline">Register here</a>
         </div>
       </div>
     </form>
